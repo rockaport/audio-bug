@@ -26,7 +26,10 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int CHART_UPDATE_PERIOD = 100;
+    private static final int CHART_UPDATE_PERIOD = 100;
+    private static float YAXIS_MIN = 0;
+    private static float YAXIS_MAX = 0;
+
     private Toolbar toolBar;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -98,9 +101,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Format the yaxis. This will be automatically updated depending on the data
         YAxis yAxis = audioLevelChart.getAxisLeft();
-        yAxis.setAxisMinValue(0);
-        yAxis.setAxisMaxValue(1);
-        yAxis.setLabelCount(6, true);
+        yAxis.setStartAtZero(false);
+        yAxis.setAxisMinValue(YAXIS_MIN);
+        yAxis.setAxisMaxValue(YAXIS_MAX);
 
         // Remove the right yaxis (unnecessary)
         audioLevelChart.getAxisRight().setEnabled(false);
@@ -137,15 +140,31 @@ public class MainActivity extends AppCompatActivity {
     private class AudioLevelUpdater implements Runnable {
         @Override
         public void run() {
-            float val = randomeGen.nextFloat();
+            // Generate some new data
+            float val = 4 * (randomeGen.nextFloat() - 0.5f);
             if (lineDataSet.getEntryCount() > 0) {
-                val = 0.5f * (val + lineDataSet.getEntryForXIndex(lineDataSet.getEntryCount()).getVal());
+                val = val + lineDataSet.getEntryForXIndex(lineDataSet.getEntryCount()).getVal();
             }
+
+            // Add a new entry and x-value
             lineDataSet.addEntry(new Entry(val, lineDataSet.getEntryCount()));
             lineData.addXValue(String.valueOf(lineDataSet.getEntryCount()));
+
+            // Automagically update axis
+            YAXIS_MIN = (float) (Math.floor(Math.min(YAXIS_MIN, val) * 10) * 0.1);
+            YAXIS_MAX = (float) (Math.ceil(Math.max(YAXIS_MAX, val) * 10) * 0.1);
+            YAxis yAxis = audioLevelChart.getAxisLeft();
+            yAxis.setAxisMinValue(YAXIS_MIN);
+            yAxis.setAxisMaxValue(YAXIS_MAX);
+
+            // Refresh the chart. We need to reset the x-range maximum since the chart does not
+            // maintain those values
             audioLevelChart.notifyDataSetChanged();
             audioLevelChart.setVisibleXRangeMaximum(30);
+
+            // Manually scroll to an x position
             audioLevelChart.moveViewToX(Math.max(lineData.getXValCount() - 30, 0));
+
             handler.postDelayed(this, CHART_UPDATE_PERIOD);
         }
     }
