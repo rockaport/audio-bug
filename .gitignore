@@ -1,8 +1,6 @@
 # IDE files
 *.iml
-/.idea/libraries
-/.idea/workspace.xml
-
+/.idea
 
 # Built application files
 *.apk

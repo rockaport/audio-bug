@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/md_light_blue_500</item>
+        <item name="colorPrimaryDark">@color/md_light_blue_700</item>
+        <item name="colorAccent">@color/md_light_blue_A200</item>
+    </style>
+
+    <style name="NavigationViewStyle" parent="AppTheme">
+        <!--<item name="itemBackground">?android:textColorPrimary</item>-->
+        <!--<item name="itemTextColor">?android:textColorPrimary</item>-->
+        <!--<item name="itemIconTint">?android:textColorPrimary</item>-->
+    </style>
+
+</resources>
