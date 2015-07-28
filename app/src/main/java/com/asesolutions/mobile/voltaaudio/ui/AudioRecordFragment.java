@@ -1,6 +1,6 @@
 package com.asesolutions.mobile.voltaaudio.ui;
 
-
+import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
@@ -9,7 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.asesolutions.mobile.voltaaudio.MainApplication;
 import com.asesolutions.mobile.voltaaudio.R;
+import com.asesolutions.mobile.voltaaudio.models.events.AudioRecordServiceEvent;
+import com.asesolutions.mobile.voltaaudio.services.AudioRecordService;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -18,32 +21,36 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.ValueFormatter;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class AudioRecordFragment extends Fragment {
-
+    // Static variables and constants
     private static final int CHART_UPDATE_PERIOD = 100;
     private static float YAXIS_MIN = 0;
     private static float YAXIS_MAX = 0;
 
-    private Handler handler;
-
+    // UI Components via butterknife
     @Bind(R.id.chart)
     LineChart audioLevelChart;
     @Bind(R.id.fab_record)
     FloatingActionButton recordButton;
 
-    boolean isRecording;
+    // General fields
+    private Bus bus;
+    private Handler handler;
+    private Random randomeGen;
 
+    // Chart related fields
     private LineData lineData;
     private LineDataSet lineDataSet;
-
-    private Random randomeGen;
 
     public AudioRecordFragment() {
         // Required empty public constructor
@@ -52,9 +59,10 @@ public class AudioRecordFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        handler = new Handler();
 
-        // Initialize a RNG
+        // Initialize fields
+        bus = MainApplication.getBus();
+        handler = new Handler();
         randomeGen = new Random();
     }
 
@@ -66,14 +74,55 @@ public class AudioRecordFragment extends Fragment {
         // Inject views
         ButterKnife.bind(this, view);
 
-        recordButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleAudioRecording();
+        initializeChart();
 
-            }
-        });
+        return view;
+    }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // Register for events
+        bus.register(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Synchronize the UI
+        syncUi();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // Unregister for events
+        bus.unregister(this);
+
+        // Remove all handler callbacks
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    @OnClick(R.id.fab_record)
+    public void toggleAudioRecording() {
+        if (!MainApplication.getState().isRecording()) {
+            getActivity().startService(new Intent(getActivity(), AudioRecordService.class));
+        } else {
+            getActivity().stopService(new Intent(getActivity(), AudioRecordService.class));
+        }
+
+        syncUi();
+    }
+
+    @Subscribe
+    public void processAudioRecordServiceEvent(AudioRecordServiceEvent event) {
+        syncUi();
+    }
+
+    private void initializeChart() {
         // Only display 30 xticks worth of data
         audioLevelChart.setVisibleXRangeMaximum(30);
 
@@ -116,20 +165,10 @@ public class AudioRecordFragment extends Fragment {
         // Create a line data object and add label/entry pairs
         lineData = new LineData(labels, lineDataSet);
         audioLevelChart.setData(lineData);
-
-        return view;
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        handler.removeCallbacksAndMessages(null);
-    }
-
-    private void toggleAudioRecording() {
-        isRecording = !isRecording;
-
-        if (isRecording) {
+    private void syncUi() {
+        if (MainApplication.getState().isRecording()) {
             recordButton.setImageResource(R.drawable.ic_mic_off_white_24dp);
             handler.postDelayed(new AudioLevelUpdater(), CHART_UPDATE_PERIOD);
         } else {
