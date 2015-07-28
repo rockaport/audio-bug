@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sample rate related arrays-->
+    <integer-array name="sample_rate_ints">
+        <item>8000</item>
+        <item>11025</item>
+        <item>16000</item>
+        <item>22050</item>
+        <item>44100</item>
+    </integer-array>
+    <string-array name="sample_rate_strings">
+        <item>8000</item>
+        <item>11025</item>
+        <item>16000</item>
+        <item>22050</item>
+        <item>44100</item>
+    </string-array>
+    <string-array name="sample_rate_descriptions">
+        <item>Low (8000)</item>
+        <item>Medium Low (11025)</item>
+        <item>Medium (16000)</item>
+        <item>Medium High (22050)</item>
+        <item>High (44100)</item>
+    </string-array>
+
+    <string-array name="sensitivity_strings">
+        <item>1.5</item>
+        <item>3.0</item>
+        <item>4.5</item>
+    </string-array>
+    <string-array name="sensitivity_descriptions">
+        <item>Low</item>
+        <item>Medium</item>
+        <item>High</item>
+    </string-array>
+
+</resources>

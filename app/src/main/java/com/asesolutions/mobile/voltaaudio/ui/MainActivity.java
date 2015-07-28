@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 fragment = new Fragment();
                 break;
             case R.id.mi_settings:
-                fragment = new Fragment();
+                fragment = new SettingsFragment();
                 break;
         }
 

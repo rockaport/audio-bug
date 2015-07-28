@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_sample_rate_default">8000</string>
+    <string name="pref_sample_rate_key">pref_sample_rate_key</string>
+    <string name="pref_sample_rate_summary">Changes the quality of the audio recording</string>
+    <string name="pref_sample_rate_title">Audio Sample Rate</string>
+
+    <string name="pref_sensitivity_default">3.0</string>
+    <string name="pref_sensitivity_key">pref_sensitivity_key</string>
+    <string name="pref_sensitivity_summary">The lower the sensitivity the less likely you are to record audio</string>
+    <string name="pref_sensitivity_title">Audio Sensitivity</string>
+</resources>

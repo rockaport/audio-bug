@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:defaultValue="@string/pref_sensitivity_default"
+        android:entries="@array/sensitivity_descriptions"
+        android:entryValues="@array/sensitivity_strings"
+        android:key="@string/pref_sensitivity_key"
+        android:summary="@string/pref_sensitivity_summary"
+        android:title="@string/pref_sensitivity_title"/>
+    <ListPreference
+        android:defaultValue="@string/pref_sample_rate_default"
+        android:entries="@array/sample_rate_descriptions"
+        android:entryValues="@array/sample_rate_strings"
+        android:key="@string/pref_sample_rate_key"
+        android:summary="@string/pref_sample_rate_summary"
+        android:title="@string/pref_sample_rate_title"/>
+</PreferenceScreen>
