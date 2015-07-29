@@ -6,24 +6,15 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioRecord;
-import android.os.*;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
 import com.asesolutions.mobile.voltaaudio.MainApplication;
 import com.asesolutions.mobile.voltaaudio.R;
-import com.asesolutions.mobile.voltaaudio.models.AudioRecordConfig;
 import com.asesolutions.mobile.voltaaudio.models.events.AudioRecordServiceEvent;
 import com.asesolutions.mobile.voltaaudio.ui.MainActivity;
 import com.squareup.otto.Bus;
-
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class AudioRecordService extends Service {
     private static int notificationId = 1001;

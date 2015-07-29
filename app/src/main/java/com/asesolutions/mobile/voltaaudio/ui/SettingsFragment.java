@@ -22,7 +22,7 @@ public class SettingsFragment extends PreferenceFragment {
         addPreferencesFromResource(R.xml.preferences);
 
         ListPreference sampleRatesListPreference =
-                (ListPreference)findPreference(getString(R.string.pref_sample_rate_key));
+                (ListPreference) findPreference(getString(R.string.pref_sample_rate_key));
 
         ArrayList<Integer> sampleRatesIndex = AudioUtil.getSupportedSampleRatesIndex();
 
@@ -33,7 +33,7 @@ public class SettingsFragment extends PreferenceFragment {
 
         CharSequence[] sampleRateEntries = new CharSequence[sampleRatesIndex.size()];
         CharSequence[] sampleRateEntryValues = new CharSequence[sampleRatesIndex.size()];
-        for (int i = 0; i < sampleRatesIndex.size() ; i++) {
+        for (int i = 0; i < sampleRatesIndex.size(); i++) {
             sampleRateEntries[i] = sampleRateDescriptions[sampleRatesIndex.get(i)];
             sampleRateEntryValues[i] = sampleRates[sampleRatesIndex.get(i)];
         }
