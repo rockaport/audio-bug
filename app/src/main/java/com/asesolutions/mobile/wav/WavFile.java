@@ -8,20 +8,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 public class WavFile {
     private RiffChunk riffChunk;
     private FmtSubChunk fmtSubChunk;
     private DataSubChunk dataSubChunk;
 
+    public WavFile(RandomAccessFile randomAccessFile) throws IOException {
+        setRiffChunk(RiffChunk.getChunk(randomAccessFile));
+        setFmtSubChunk(FmtSubChunk.getChunk(randomAccessFile));
+        setDataSubChunk(DataSubChunk.getChunk(randomAccessFile));
+    }
+
     public static WavFile readFile(RandomAccessFile randomAccessFile) throws IOException {
-        WavFile wavFile = new WavFile();
-
-        wavFile.setRiffChunk(RiffChunk.getChunk(randomAccessFile));
-        wavFile.setFmtSubChunk(FmtSubChunk.getChunk(randomAccessFile));
-        wavFile.setDataSubChunk(DataSubChunk.getChunk(randomAccessFile));
-
-        return wavFile;
+        return new WavFile(randomAccessFile);
     }
 
     public void writeFile(RandomAccessFile randomAccessFile) throws IOException {
@@ -102,16 +103,17 @@ public class WavFile {
         this.dataSubChunk = dataSubChunk;
     }
 
+    public WavFile(int sampleRate, int bytesPerSample) {
+        setRiffChunk(new RiffChunk());
+        setFmtSubChunk(new FmtSubChunk(1, 1, sampleRate, 8 * bytesPerSample));
+        setDataSubChunk(new DataSubChunk(0));
+    }
+
     public static void main(String[] args) throws IOException {
         int sampleRate = 8000;
-        int seconds = 5;
+        int seconds = 2;
         int bytesPerSample = 1;
-        int bitsPerSample = 8*bytesPerSample;
         int numSamples = sampleRate * seconds * bytesPerSample;
-
-        RiffChunk riffChunk = new RiffChunk();
-        FmtSubChunk fmtSubChunk = new FmtSubChunk(1, 1, sampleRate, bitsPerSample);
-        DataSubChunk dataSubChunk = new DataSubChunk(0);
 
         File file = new File("test.wav");
         if (file.exists()) {
@@ -119,24 +121,26 @@ public class WavFile {
         }
 
         RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-        WavFile wavFile = new WavFile();
-        wavFile.setRiffChunk(riffChunk);
-        wavFile.setFmtSubChunk(fmtSubChunk);
-        wavFile.setDataSubChunk(dataSubChunk);
+        WavFile wavFile = new WavFile(sampleRate, bytesPerSample);
         wavFile.writeFile(randomAccessFile);
-
 
         byte[] samples = new byte[numSamples];
 
-        for (int i = 0; i < numSamples; i++) {
-            samples[i] = (byte) (255*Math.cos(2*Math.PI*2000/sampleRate*i));
-        }
+        Random random = new Random();
+        random.nextBytes(samples);
+
         wavFile.writeData(randomAccessFile, samples);
         randomAccessFile.close();
 
-
         randomAccessFile = new RandomAccessFile(file, "rw");
         wavFile = WavFile.readFile(randomAccessFile);
-        wavFile.fmtSubChunk.toString();
+        System.out.println(wavFile.toString());
+    }
+
+    @Override
+    public String toString() {
+        return getRiffChunk().toString() +
+                getFmtSubChunk().toString() +
+                getDataSubChunk().toString();
     }
 }

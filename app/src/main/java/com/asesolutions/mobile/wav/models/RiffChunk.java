@@ -6,10 +6,11 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class RiffChunk {
-    private static final int numBytes = 2 * 4 + 4;
-    private static final int offset = 0;
     private static byte[] chunkId = {'R', 'I', 'F', 'F'};
+    private static final int numBytes = 12; // 2 * 4 + 4;
+    private static final int offset = 0;
     private int chunkSize;
+
     private static byte[] format = {'W', 'A', 'V', 'E'};
 
     public void updateChunkSize(int dataSubChunkSize) {
@@ -64,13 +65,13 @@ public class RiffChunk {
 
     @Override
     public String toString() {
-        StringBuffer stringBuffer = new StringBuffer()
+        StringBuilder stringBuilder = new StringBuilder()
                 .append(RiffChunk.class.getSimpleName()).append(" {\n")
-                .append("chunkId: " + new String(chunkId)).append("\n")
-                .append("chunkSize: " + chunkSize).append("\n")
-                .append("chunkId: " + new String(format)).append("\n")
+                .append("    chunkId: " + new String(chunkId)).append("\n")
+                .append("    chunkSize: " + chunkSize).append("\n")
+                .append("    format: " + new String(format)).append("\n")
                 .append("}\n");
 
-        return stringBuffer.toString();
+        return stringBuilder.toString();
     }
 }

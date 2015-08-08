@@ -6,10 +6,11 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class FmtSubChunk {
-    private static final int numBytes = 4 + 3 * 4 + 4 * 2;
-    private static final int offset = 12;
     private static byte[] chunkId = {'f', 'm', 't', ' '};
+    private static final int numBytes = 24; // 4 + 3 * 4 + 4 * 2;
+    private static final int offset = 12;
     private static int chunkSize = 16;
+
     private short audioFormat;
     private short numChannels;
     private int sampleRate;
@@ -146,25 +147,20 @@ public class FmtSubChunk {
         return bitsPerSample;
     }
 
-//    @Override
-//    public String toString() {
-//        String jsonString = "json-error";
-//        try {
-//            jsonString = new JSONStringer()
-//                    .object()
-//                    .key("chunkId").value(chunkId)
-//                    .key("chunkSize").value(chunkSize)
-//                    .key("audioFormat").value(audioFormat)
-//                    .key("numChannels").value(numChannels)
-//                    .key("sampleRate").value(sampleRate)
-//                    .key("byteRate").value(byteRate)
-//                    .key("blockAlign").value(blockAlign)
-//                    .key("bitsPerSample").value(bitsPerSample)
-//                    .endObject()
-//                    .toString();
-//        } catch (JSONException e) {
-//        }
-//
-//        return getClass().getSimpleName() + jsonString;
-//    }
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder()
+                .append(FmtSubChunk.class.getSimpleName()).append(" {\n")
+                .append("    chunkId: " + new String(chunkId)).append("\n")
+                .append("    chunkSize: " + chunkSize).append("\n")
+                .append("    audioFormat: " + audioFormat).append("\n")
+                .append("    numChannels: " + numChannels).append("\n")
+                .append("    sampleRate: " + sampleRate).append("\n")
+                .append("    byteRate: " + byteRate).append("\n")
+                .append("    blockAlign: " + blockAlign).append("\n")
+                .append("    bitsPerSample: " + bitsPerSample).append("\n")
+                .append("}\n");
+
+        return stringBuilder.toString();
+    }
 }

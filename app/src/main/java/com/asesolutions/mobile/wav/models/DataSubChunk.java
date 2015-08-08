@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class DataSubChunk {
-    private static final int numBytes = 4 + 4;
-    private static final int offset = 36;
     private static byte[] chunkId = {'d', 'a', 't', 'a'};
+    private static final int numBytes = 8; // 4 + 4
+    private static final int offset = 36;
     private int chunkSize;
 
     public DataSubChunk(int chunkSize) {
@@ -57,19 +57,14 @@ public class DataSubChunk {
         return chunkSize;
     }
 
-//    @Override
-//    public String toString() {
-//        String jsonString = "json-error";
-//        try {
-//            jsonString = new JSONStringer()
-//                    .object()
-//                    .key("chunkId").value(chunkId)
-//                    .key("chunkSize").value(chunkSize)
-//                    .endObject()
-//                    .toString();
-//        } catch (JSONException e) {
-//        }
-//
-//        return getClass().getSimpleName() + jsonString;
-//    }
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder()
+                .append(DataSubChunk.class.getSimpleName()).append(" {\n")
+                .append("    chunkId: " + new String(chunkId)).append("\n")
+                .append("    chunkSize: " + chunkSize).append("\n")
+                .append("}\n");
+
+        return stringBuilder.toString();
+    }
 }

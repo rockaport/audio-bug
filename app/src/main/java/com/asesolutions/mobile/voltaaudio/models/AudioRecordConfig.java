@@ -10,10 +10,10 @@ import com.asesolutions.mobile.voltaaudio.MainApplication;
 import com.asesolutions.mobile.voltaaudio.R;
 
 public class AudioRecordConfig {
-    private final int audioSource = MediaRecorder.AudioSource.MIC;
-    private final int sampleRate;
-    private final int channelConfig = AudioFormat.CHANNEL_IN_MONO;
-    private final int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+    private int audioSource = MediaRecorder.AudioSource.MIC;
+    private int sampleRate;
+    private int channelConfig = AudioFormat.CHANNEL_IN_MONO;
+    private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
 
     private final float sensitivity;
 
