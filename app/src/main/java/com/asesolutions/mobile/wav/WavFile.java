@@ -61,9 +61,31 @@ public class WavFile {
         dataSubChunk.writeBytes(randomAccessFile);
     }
 
+    public void writeData(RandomAccessFile randomAccessFile, short[] shorts) throws IOException {
+        randomAccessFile.seek(randomAccessFile.length());
+
+        writeShorts(randomAccessFile, shorts);
+
+        // Update chunk sizes
+        int numSamples = shorts.length;
+        int additionalSize = numSamples * fmtSubChunk.getNumChannels() * Short.SIZE / Byte.SIZE;
+        dataSubChunk.updateChunkSize(additionalSize);
+        riffChunk.updateChunkSize(dataSubChunk.getChunkSize());
+
+        // Write out chunk sizes
+        riffChunk.writeBytes(randomAccessFile);
+        dataSubChunk.writeBytes(randomAccessFile);
+    }
+
     private void writeShorts(RandomAccessFile randomAccessFile, byte[] bytes) throws IOException {
         for (int i = 0; i < bytes.length; i += 2) {
             randomAccessFile.writeShort(Short.reverseBytes(ByteBuffer.wrap(bytes, i, 2).getShort()));
+        }
+    }
+
+    private void writeShorts(RandomAccessFile randomAccessFile, short[] shorts) throws IOException {
+        for (int i = 0; i < shorts.length; i++) {
+            randomAccessFile.writeShort(Short.reverseBytes(shorts[i]));
         }
     }
 

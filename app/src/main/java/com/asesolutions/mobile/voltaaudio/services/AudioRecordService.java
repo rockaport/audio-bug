@@ -86,10 +86,4 @@ public class AudioRecordService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-
-    public enum STATE {
-        LISTENING,
-        RECORDING,
-    }
-
 }

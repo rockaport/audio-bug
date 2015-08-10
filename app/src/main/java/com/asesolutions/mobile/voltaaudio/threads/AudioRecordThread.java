@@ -3,8 +3,11 @@ package com.asesolutions.mobile.voltaaudio.threads;
 import android.media.AudioRecord;
 
 import com.asesolutions.mobile.voltaaudio.MainApplication;
+import com.asesolutions.mobile.voltaaudio.models.AudioDetector;
 import com.asesolutions.mobile.voltaaudio.models.AudioRecordConfig;
-import com.asesolutions.mobile.voltaaudio.services.AudioRecordService;
+import com.asesolutions.mobile.voltaaudio.models.events.AudioRecordThreadEvent;
+import com.asesolutions.mobile.wav.WavFile;
+import com.squareup.otto.Bus;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -12,15 +15,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 public class AudioRecordThread extends Thread {
     private boolean running;
-    private AudioRecordService.STATE state;
+    private STATE state;
     private AudioRecordConfig audioRecordConfig;
+    private Bus bus;
 
     AudioRecordThread() {
-        state = AudioRecordService.STATE.LISTENING;
         audioRecordConfig = new AudioRecordConfig();
+        bus = MainApplication.getBus();
     }
 
     public void stopRecording() {
@@ -29,6 +34,11 @@ public class AudioRecordThread extends Thread {
 
     @Override
     public void run() {
+        // Register to produce events
+        bus.register(this);
+
+        sendEvent(STATE.INITIALIZING);
+
         // Set thread priority to high audio
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
@@ -37,7 +47,10 @@ public class AudioRecordThread extends Thread {
                 audioRecordConfig.getChannelConfig(),
                 audioRecordConfig.getAudioFormat());
 
-        if (minBufferSize == AudioRecord.ERROR || minBufferSize == AudioRecord.ERROR_BAD_VALUE) {
+        // AudioRecord.ERROR or AudioRecord.ERROR_BAD_VALUE
+        if (minBufferSize <= 0) {
+            sendEvent(STATE.STOPPED, "Error getting audio buffer size");
+            cleanup();
             return;
         }
 
@@ -52,12 +65,14 @@ public class AudioRecordThread extends Thread {
                     audioRecordConfig.getAudioFormat(),
                     bufferSize);
         } catch (IllegalArgumentException e) {
-            // TODO: notify others of failure and maybe why
+            sendEvent(STATE.STOPPED, "Error initializing audio record session: " + e.toString());
+            cleanup();
             return;
         }
 
         if (audioRecord.getState() == AudioRecord.STATE_UNINITIALIZED) {
-            // TODO: notify others of failure and maybe why
+            sendEvent(STATE.STOPPED, "Error initializing audio record session");
+            cleanup();
             return;
         }
 
@@ -67,34 +82,110 @@ public class AudioRecordThread extends Thread {
         File file = new File(fileUri);
         file.mkdirs();
 
-        DataOutputStream dataOutputStream;
+        RandomAccessFile randomAccessFile;
         try {
-            dataOutputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(fileUri))));
+            randomAccessFile = new RandomAccessFile(fileUri, "rw");
         } catch (FileNotFoundException e) {
-            // TODO: notify others of failure and maybe why
+            sendEvent(STATE.STOPPED, "Error creating file: " + e.toString());
+            cleanup();
             return;
         }
 
+        WavFile wavFile = new WavFile(audioRecordConfig.getSampleRate(), Short.SIZE / Byte.SIZE);
+        try {
+            wavFile.writeFile(randomAccessFile);
+        } catch (IOException e) {
+            sendEvent(STATE.STOPPED, "Error creating wav file: " + e.toString());
+            cleanup();
+            return;
+        }
+
+        AudioDetector audioDetector = new AudioDetector(audioRecordConfig.getSensitivity());
+
         short[] audioBuffer = new short[bufferSize];
+        short[] processingBuffer = new short[audioRecordConfig.getSampleRate()];
+        int samplesRead = 0;
 
         audioRecord.startRecording();
+
+        sendEvent(STATE.LISTENING);
+        // Create a new session
 
         try {
             while (running) {
                 int bytesRead = audioRecord.read(audioBuffer, 0, bufferSize);
-                // TODO: Process audio record samples
 
                 for (int i = 0; i < bytesRead; i++) {
-                    dataOutputStream.writeShort(audioBuffer[i]);
+                    // Fill the processing buffer
+                    processingBuffer[samplesRead++] = audioBuffer[i];
+
+                    // Keep going if we don't have enough sampples (1 seconds worth)
+                    if (samplesRead < audioRecordConfig.getSampleRate()) {
+                        continue;
+                    }
+
+                    // Reset the number of samples read
+                    samplesRead = 0;
+
+                    // Process this buffer and get the result
+                    AudioDetector.Result result = audioDetector.process(processingBuffer);
+
+                    if (result.isRecording()) {
+                        if (state == STATE.LISTENING) {
+                            sendEvent(STATE.RECORDING);
+
+                            // Create a new event
+                        }
+
+                        // Write samples to file
+                        wavFile.writeData(randomAccessFile, processingBuffer);
+                    } else {
+                        if (state == STATE.RECORDING) {
+                            sendEvent(STATE.LISTENING);
+
+                            // Terminate this event
+                        }
+                    }
                 }
             }
 
-            dataOutputStream.close();
+            // Close the file
+            randomAccessFile.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            sendEvent(STATE.STOPPED, "Error saving audio to file: " + e.toString());
         }
 
+        // Stop/release the audioRecord instance
         audioRecord.stop();
         audioRecord.release();
+
+        // Send event and cleanup
+        sendEvent(STATE.STOPPED);
+        cleanup();
+    }
+
+    private void setState(STATE state) {
+        this.state = state;
+    }
+
+    private void sendEvent(STATE state) {
+        sendEvent(state, "");
+    }
+
+    private void sendEvent(STATE state, String message) {
+        setState(state);
+
+        bus.post(new AudioRecordThreadEvent(state, message));
+    }
+
+    private void cleanup() {
+        bus.unregister(this);
+    }
+
+    public enum STATE {
+        INITIALIZING,
+        LISTENING,
+        RECORDING,
+        STOPPED,
     }
 }
